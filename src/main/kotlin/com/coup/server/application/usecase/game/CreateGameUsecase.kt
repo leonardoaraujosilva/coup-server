@@ -14,6 +14,7 @@ class CreateGameUsecase(
 
     fun execute(game: Game): Game {
         game.validate()
+        game.initialize()
         val stored = repository.save(game)
 
         publish(stored)
