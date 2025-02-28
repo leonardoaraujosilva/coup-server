@@ -1,8 +1,8 @@
 package com.coup.server.application.mapper
 
 import com.coup.server.domain.model.Game
-import com.coup.server.port.`in`.dto.CreateGameRequest
-import com.coup.server.port.`in`.dto.GameDetailsResponse
+import com.coup.server.port.`in`.dto.game.crud.CreateGameRequest
+import com.coup.server.port.`in`.dto.game.GameDetailsResponse
 
 interface GameMapper {
 

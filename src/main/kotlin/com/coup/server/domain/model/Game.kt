@@ -9,8 +9,8 @@ class Game(
     var numberOfPlayers: Int? = null
     var usingSkins: Boolean = false
 
-    val deckList: MutableList<Influence> = ArrayList()
-    val revealedCardList: MutableList<Influence> = ArrayList()
+    val deckList: MutableList<Card> = ArrayList()
+    val revealedCardList: MutableList<Card> = ArrayList()
     val playerList: MutableList<Player> = ArrayList()
 
     companion object {
@@ -40,7 +40,7 @@ class Game(
         shuffleDeck()
     }
 
-    fun getPlayersHandMap(): Map<UUID, List<Influence>> {
+    fun getPlayersHandMap(): Map<UUID, List<Card>> {
         return playerList.associateBy { it.id }.mapValues { it.value.handCardList }
     }
 
@@ -51,10 +51,10 @@ class Game(
     private fun createSkinsCards() {
         for (i in 0 until EXPECTED_INFLUENCE_TYPES_IN_GAME) {
             for (j in 0 until INFLUENCE_SKINS_AMOUNT) {
-                val influenceCard = Influence()
-                influenceCard.character = InfluenceType.entries[i]
-                influenceCard.skin = InfluenceSkin.entries[j]
-                deckList.add(influenceCard)
+                val cardCard = Card()
+                cardCard.character = InfluenceType.entries[i]
+                cardCard.skin = InfluenceSkin.entries[j]
+                deckList.add(cardCard)
             }
         }
     }
@@ -83,10 +83,10 @@ class Game(
 
         for (i in 0 until missingCardsByType) {
             for (j in 0 until EXPECTED_INFLUENCE_TYPES_IN_GAME) {
-                val influenceCard = Influence()
-                influenceCard.character = InfluenceType.entries[j]
-                influenceCard.skin = DEFAULT_INFLUENCE_SKIN
-                deckList.add(influenceCard)
+                val cardCard = Card()
+                cardCard.character = InfluenceType.entries[j]
+                cardCard.skin = DEFAULT_INFLUENCE_SKIN
+                deckList.add(cardCard)
             }
         }
     }
