@@ -24,6 +24,8 @@ class RoomServiceImpl(
     private val findAll: FindAllRoomsUseCase,
 ) : RoomService {
 
+    // TODO bind sessionId to user
+
     override fun create(sessionId: String, payload: CreateRoomRequest): RoomResponse {
         val player = findPlayer.execute(sessionId)
         val room = mapper.fromCreateRoomRequest(payload)
