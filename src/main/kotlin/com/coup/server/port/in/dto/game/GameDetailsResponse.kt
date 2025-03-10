@@ -1,4 +1,4 @@
-package com.coup.server.port.`in`.dto
+package com.coup.server.port.`in`.dto.game
 
 import java.time.LocalDateTime
 import java.util.*

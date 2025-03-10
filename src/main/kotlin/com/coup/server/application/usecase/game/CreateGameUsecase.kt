@@ -14,14 +14,15 @@ class CreateGameUsecase(
 
     fun execute(game: Game): Game {
         game.validate()
-        val stored = repository.save(game)
 
+        game.initialize()
+        val stored = repository.save(game)
         publish(stored)
 
         return stored
     }
 
-    fun publish(game: Game) {
+    private fun publish(game: Game) {
         val event = CreatedGameEvent()
         event.gameId = game.id!!
         publisher.publish(event)
