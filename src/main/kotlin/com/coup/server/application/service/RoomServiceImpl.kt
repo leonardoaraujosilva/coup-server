@@ -1,5 +1,10 @@
 package com.coup.server.application.service
 
+import com.coup.server.application.mapper.RoomMapper
+import com.coup.server.application.usecase.player.FindPlayerBySessionIdUseCase
+import com.coup.server.application.usecase.room.CreateRoomUseCase
+import com.coup.server.application.usecase.room.FindAllRoomsUseCase
+import com.coup.server.application.usecase.room.FindRoomByIdUseCase
 import com.coup.server.application.usecase.room.JoinRoomUseCase
 import com.coup.server.port.`in`.RoomService
 import com.coup.server.port.`in`.dto.CreateRoomRequest
@@ -11,22 +16,35 @@ import java.util.*
 
 @Service
 class RoomServiceImpl(
-    private val connect: JoinRoomUseCase
+    private val mapper: RoomMapper,
+    private val findPlayer: FindPlayerBySessionIdUseCase,
+    private val create: CreateRoomUseCase,
+    private val join: JoinRoomUseCase,
+    private val findById: FindRoomByIdUseCase,
+    private val findAll: FindAllRoomsUseCase,
 ) : RoomService {
 
-    override fun create(sessionId: String, payload: CreateRoomRequest): RoomSummaryResponse {
-        TODO("Not yet implemented")
+    override fun create(sessionId: String, payload: CreateRoomRequest): RoomResponse {
+        val player = findPlayer.execute(sessionId)
+        val room = mapper.fromCreateRoomRequest(payload)
+        val created = create.execute(room, player)
+        return mapper.toRoomResponse(created)
     }
 
-    override fun join(sessionId: String, roomId: UUID): RoomEventResponse {
-        TODO("Not yet implemented")
+    override fun join(sessionId: String, roomId: UUID): RoomResponse {
+        val player = findPlayer.execute(sessionId)
+        val room = findById.execute(roomId)
+        val joined = join.execute(room, player)
+        return mapper.toRoomResponse(joined)
     }
 
     override fun findById(roomId: UUID): RoomResponse {
-        TODO("Not yet implemented")
+        val room = findById.execute(roomId)
+        return mapper.toRoomResponse(room)
     }
 
     override fun findAll(): List<RoomSummaryResponse> {
-        TODO("Not yet implemented")
+        val roomList = findAll.execute()
+        return roomList.map { room -> mapper.toRoomSummaryResponse(room) }
     }
 }

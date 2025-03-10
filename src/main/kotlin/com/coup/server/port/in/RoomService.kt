@@ -10,8 +10,8 @@ interface RoomService {
 
     fun findAll(): List<RoomSummaryResponse>
 
-    fun create(sessionId: String, payload: CreateRoomRequest): RoomSummaryResponse
-    fun join(sessionId: String, roomId: UUID): RoomEventResponse
+    fun create(sessionId: String, payload: CreateRoomRequest): RoomResponse
+    fun join(sessionId: String, roomId: UUID): RoomResponse
     fun findById(roomId: UUID): RoomResponse
 
 }
