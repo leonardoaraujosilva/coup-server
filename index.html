@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+
+<!-- Only a preview file to test the GameRoomController.kt -->
+
+<head>
+    <title>Hello WebSocket</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link href="/main.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+    <script src="/app.js"></script>
+</head>
+
+<body>
+<div id="main-content" class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <form class="form-inline">
+                <div class="form-group">
+                    <label for="name">What is your name?</label>
+                    <input type="text" id="name" class="form-control" placeholder="Your name here...">
+                </div>
+                <button id="send" class="btn btn-default" type="submit">Send</button>
+            </form>
+        </div>
+    </div>
+    <div class="row" id="match-list">
+        <div class="col-md-12">
+            <table id="conversation" class="table table-striped">
+                <thead>
+                <tr>
+                    <th>Matches</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody id="matches">
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="row" id="my-match" style="display: none;">
+        <div class="col-md-12">
+            <table id="conversation" class="table table-striped">
+                <thead>
+                <tr>
+                    <th>Greetings for your match with id = "<span id="matchIdTitle"></span>"</th>
+                </tr>
+                </thead>
+                <tbody id="room">
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    const stompClient = new StompJs.Client({
+        brokerURL: 'ws://localhost:8080/ws'
+    });
+
+    stompClient.onConnect = (frame) => {
+        setConnected(true);
+        stompClient.subscribe('/topic/match', (greeting) => {
+            const data = JSON.parse(greeting.body)
+            console.log(`Match received ${data.id}`)
+            updateMatchByEvent(data);
+        });
+
+        fetch('http://localhost:8080/match')
+            .then(response => response.json())
+            .then(data => { renderMatches(data) })
+
+        stompClient.subscribe('/user/topic/match/create', (greeting) => {
+            const data = JSON.parse(greeting.body)
+            console.log(`Connected to own room ${data.id}`)
+            renderRoomList(data);
+            $('#match-list').hide()
+            $('#my-match').show()
+
+            stompClient.unsubscribe('/topic/match')
+            stompClient.unsubscribe('/user/topic/match/create')
+            stompClient.subscribe('/topic/match/' + data.id, onRoomEvent)
+        });
+    };
+
+    function onRoomEvent(payload) {
+        const data = JSON.parse(payload.body)
+        console.log(`Room event!! ${data.id}`)
+        renderRoomList(data);
+    }
+
+    stompClient.onWebSocketError = (error) => {
+        console.error('Error with websocket', error);
+    };
+
+    stompClient.onStompError = (frame) => {
+        console.error('Broker reported error: ' + frame.headers['message']);
+        console.error('Additional details: ' + frame.body);
+    };
+
+    function setConnected(connected) {
+        $("#connect").prop("disabled", connected);
+        $("#disconnect").prop("disabled", !connected);
+        if (connected) {
+            $("#conversation").show();
+        }
+        else {
+            $("#conversation").hide();
+        }
+        $("#greetings").html("");
+    }
+
+    function disconnect() {
+        stompClient.deactivate();
+        setConnected(false);
+        console.log("Disconnected");
+    }
+
+    function sendName() {
+        const name = $("#name").val()
+        if (name === '') {
+            alert('Set a name')
+            return
+        }
+
+        const valor = stompClient.publish({
+            destination: "/app/match/create",
+            body: JSON.stringify({ 'nickname': $("#name").val(), 'useSkins': true })
+        });
+    }
+
+    function connectToMatch(matchId) {
+        const name = $("#name").val()
+        if (name === '') {
+            alert('Set a name')
+            return
+        }
+
+        stompClient.unsubscribe('/topic/match')
+        stompClient.unsubscribe('/user/topic/match/create')
+        stompClient.subscribe('/topic/match/' + matchId, onRoomEvent)
+
+        stompClient.publish({
+            destination: "/app/match/" + matchId,
+            body: JSON.stringify({ 'nickname': $("#name").val() })
+        });
+
+        $('#match-list').hide()
+        $('#my-match').show()
+    }
+
+    function renderMatches(data) {
+        let content = ""
+        console.log(data)
+        data.map(each => {
+            content += `<tr id="match-row-${each.id}"><td> Sala de ${each.playerList[0]}</td><td><button onClick='connectToMatch("${each.id}")'>Connect</button></td></tr>`
+        })
+        $("#matches").html(content);
+    }
+
+    function updateMatchByEvent(data) {
+        if (data.type === 'ADDED') {
+            $("#matches").append(`<tr id="match-row-${data.id}"><td> Sala de ${data.playerList[0]}</td><td><button onClick='connectToMatch("${data.id}")'>Connect</button></td></tr>`)
+        } else if (data.type === 'REMOVED') {
+            $(`#match-row-${data.id}`).remove()
+        }
+    }
+
+    function renderRoomList(data) {
+        $('#matchIdTitle').text(data.id)
+
+        let content = ""
+        data.playerList.map(each => {
+            content += "<tr><td>" + each + "</td></tr>"
+        })
+        $("#room").html(content);
+    }
+
+    $(function () {
+        $("form").on('submit', (e) => e.preventDefault());
+        $("#disconnect").click(() => disconnect());
+        $("#send").click(() => sendName());
+
+        stompClient.activate();
+    });
+</script>
+
+</html>

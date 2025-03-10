@@ -14,14 +14,15 @@ import java.util.*
 
 @Service
 class GameCrudServiceImpl(
-    private val mapper: GameMapper,
+    //private val mapper: GameMapper,
     private val create: CreateGameUsecase
 ) : GameCrudService {
 
     override fun create(payload: CreateGameRequest): GameDetailsResponse {
-        val game = mapper.fromCreateGameRequest(payload)
-        val created = create.execute(game)
-        return mapper.toGameDetailsResponse(created)
+//        val game = mapper.fromCreateGameRequest(payload)
+//        val created = create.execute(game)
+//        return mapper.toGameDetailsResponse(created)
+        TODO("Not yet implemented")
     }
 
     override fun findById(id: UUID): GameDetailsResponse {
