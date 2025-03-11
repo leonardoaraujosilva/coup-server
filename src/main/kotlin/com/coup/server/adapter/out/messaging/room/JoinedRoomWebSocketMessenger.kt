@@ -16,6 +16,6 @@ class JoinedRoomWebSocketMessenger(
 
     override fun send(room: Room) {
         val topicName = String.format(RoomEventWebSocketNotifier.TOPIC_NAME_TEMPLATE, room.id)
-        messaging.convertAndSend(TOPIC_NAME_TEMPLATE, room)
+        messaging.convertAndSend(topicName, room)
     }
 }

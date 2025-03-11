@@ -8,7 +8,6 @@ import com.coup.server.application.usecase.room.FindRoomByIdUseCase
 import com.coup.server.application.usecase.room.JoinRoomUseCase
 import com.coup.server.port.`in`.RoomService
 import com.coup.server.port.`in`.dto.CreateRoomRequest
-import com.coup.server.port.`in`.dto.RoomEventResponse
 import com.coup.server.port.`in`.dto.RoomResponse
 import com.coup.server.port.`in`.dto.RoomSummaryResponse
 import org.springframework.stereotype.Service

@@ -6,9 +6,14 @@ import java.util.*
 class Room(
 ) {
 
+    companion object {
+        private const val INVALID_TITLE = "Invalid room"
+        private const val INVALID_FIELD_NAME = "The field \"name\" is required"
+    }
+
     fun validate() {
         if (!::name.isInitialized)
-            throw InvalidModelException("Invalid room", "The field \"name\" is required")
+            throw InvalidModelException(INVALID_TITLE, INVALID_FIELD_NAME)
     }
 
     var id : UUID? = null
