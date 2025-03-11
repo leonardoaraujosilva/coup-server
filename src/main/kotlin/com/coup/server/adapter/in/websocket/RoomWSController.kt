@@ -16,17 +16,14 @@ class RoomWSController(
     private val service: RoomService
 ) {
 
-    // TODO should I use @SendToUser and @SendTo to call WS topics or should I use messagingTemplate to call it?
-
     @MessageMapping("/room/create")
-    @SendTo("/topic/room")
     fun createRoom(@Payload payload: CreateRoomRequest,
                     headerAccessor: SimpMessageHeaderAccessor
     ): RoomResponse {
         return service.create(headerAccessor.sessionId!!, payload)
     }
 
-    @MessageMapping("/room/{roomId}/connect")
+    @MessageMapping("/room/{roomId}/join")
     fun connectToRoom(@DestinationVariable roomId : UUID,
                       headerAccessor: SimpMessageHeaderAccessor) : RoomResponse {
         return service.join(headerAccessor.sessionId!!, roomId)

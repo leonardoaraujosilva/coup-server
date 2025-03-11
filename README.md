@@ -1,6 +1,6 @@
 # Coup Game Backend
 
-This is a backend server for hosting and playing **Coup**, a bluffing card game. The project is implemented in **Kotlin with Spring Boot** and exposes a **REST API** for managing game sessions and player interactions.
+This is a backend server for hosting and playing **Coup**, a bluffing card game. The project is implemented in **Kotlin with Spring Boot** using a hexagonal architecture. This server exposes REST APIs and WebSockets to manage game sessions and player interactions.
 
 Additionally, this server will serve as a foundation for a separate **Python-based module** that employs **reinforcement learning algorithms** to develop an AI that continuously improves to become the best Coup player possible.
 
@@ -22,77 +22,76 @@ For full game rules, refer to [official Coup rules](https://www.indieboardsandca
 
 ## Features
 
-- Create, join, and manage Coup game sessions via REST API  
-- Track game state and player actions  
-- Implement core Coup mechanics (income, foreign aid, assassinations, challenges, etc.)  
-- Allow multiple concurrent games  
-- Designed to integrate with a Python-based AI module for reinforcement learning  
-- WebSocket support for real-time updates (planned)
+- **Real-time Room Management via WebSockets:**
+    - **Create Room:**
+        - Endpoint: `/app/room/create`
+        - **Messenger:** Notifies `/user/topic/room/create` with room data (sent privately to the creator).
+        - **Notifier:** Broadcasts to `/topic/room` to inform all clients about the new room.
+    - **Join Room:**
+        - Endpoint: `/app/room/{roomId}/join`
+        - **Messenger:** Notifies `/user/topic/room/{roomId}` with the room’s current state (sent privately to the joining user).
+        - **Notifier:** Broadcasts to `/topic/room/{roomId}` to notify all room participants about the new user.
+- **REST Endpoints for Room Data:**
+    - **Find All Rooms:**
+        - `GET /api/v1/room` returns a summarized list of game rooms.
+    - **Find Room by ID:**
+        - `GET /api/v1/room/{roomId}` returns all data for a specific room.
+- **Redis Integration:**
+    - Stores room data (and, in the future, player and match data).
+- **AI Integration:**
+    - Serves as a simulation environment for a Python-based reinforcement learning module that trains AIs to play Coup.
+
+---
+
+## Usage Flow
+
+1. **Connect to the WebSocket (STOMP):**  
+   Clients establish a connection to the server via the WebSocket endpoint.
+
+2. **Retrieve Room List:**  
+   Use the REST endpoint `GET /api/v1/room` (findAll) to get a summarized list of rooms.
+
+3. **Create or Join a Room:**
+    - **Create Room:**  
+      Send a message to `/app/room/create` to create a new room.
+        - The server responds on:
+            - **Messenger:** `/user/topic/room/create` (room data sent to the creator)
+            - **Notifier:** `/topic/room` (broadcasts new room creation to all clients)
+    - **Join Room:**  
+      Send a message to `/app/room/{roomId}/join` to join an existing room.
+        - The server responds on:
+            - **Messenger:** `/user/topic/room/{roomId}` (room state sent to the joining user)
+            - **Notifier:** `/topic/room/{roomId}` (broadcasts updates to all clients in the room)
+
+4. **Subscribing to Topics:**
+    - **Before joining a room:**  
+      Subscribe to `/topic/room` to monitor room creations and deletions.
+    - **After joining a room:**  
+      Unsubscribe from `/topic/room` and subscribe to `/topic/room/{roomId}` to receive real-time updates specific to that room.
+
+5. **Test Front-End:**  
+   A simplified front-end is provided in `/index.html` to simulate multiple clients (open in different browser tabs) and test WebSocket communication.
+
+---
 
 ## Tech Stack
 
 - **Backend:** Kotlin, Spring Boot
-- **Database:** PostgreSQL
-- **API Protocol:** REST
-- **AI Integration:** Python (Reinforcement Learning)
-- **Authentication:** JWT (planned)
-- **WebSockets:** For real-time game updates (future feature)
-
-## API Endpoints (WIP)
-
-| Method | Endpoint             | Description |
-|--------|----------------------|-------------|
-| POST   | `/game/create`       | Create a new game session |
-| POST   | `/game/{id}/join`    | Join an existing game |
-| GET    | `/game/{id}/state`   | Get the current state of a game |
-| POST   | `/game/{id}/action`  | Perform an action (income, assassinate, challenge, etc.) |
-| GET    | `/game/{id}/players` | Retrieve player information |
+- **Data Store:** Redis (for room data; future support for players and matches)
+- **API Protocols:**
+    - **REST:** Two GET endpoints for room data.
+    - **WebSockets (STOMP):** For real-time room creation, joining, and updates.
+- **Front-End Testing:** A simple `/index.html` to simulate multi-client interactions.
+- **AI Integration:** Python module for reinforcement learning.
 
 ---
-
-## AI Integration
-
-This backend will be used as a **training environment** for an AI model in Python, utilizing **reinforcement learning**. The AI will:
-
-- Interact with the game API to play games
-- Learn strategies over time based on game outcomes
-- Develop optimal bluffing and challenge strategies
-- Continuously improve by playing against itself and real players
-
-The AI module will be developed separately in Python using **Deep Reinforcement Learning (DRL)** techniques, such as **Deep Q-Learning (DQN) and Proximal Policy Optimization (PPO)**.
-
-## How to Run the Backend
-
-### Prerequisites
-- Java 17+
-- Kotlin
-- PostgreSQL (or another database if configured)
-- Gradle
-
-### Running the Server
-```bash
-git clone https://github.com/yourusername/coup-backend.git
-cd coup-backend
-./gradlew bootRun
-```
-
-### Running with Docker (Planned)
-A Dockerfile will be provided for easier deployment.
 
 ## Contributing
-We welcome contributions! Feel free to open issues and submit pull requests.
+
+Contributions are welcome! Please open issues or submit pull requests for improvements, bug fixes, or additional features.
+
+---
 
 ## License
+
 This project is licensed under the MIT License.
-
----
-
-> "Deception is a weapon; use it wisely."
-
----
-
-### Future Roadmap
-- [ ] WebSocket support for real-time updates
-- [ ] Full authentication & authorization system
-- [ ] Matchmaking and ranking system
-- [ ] More AI training integration
