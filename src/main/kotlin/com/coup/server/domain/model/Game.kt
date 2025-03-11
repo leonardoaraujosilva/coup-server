@@ -1,6 +1,7 @@
 package com.coup.server.domain.model
 
 import com.coup.server.domain.exception.InvalidModelException
+import java.util.HashMap
 import java.util.UUID
 
 class Game(
@@ -11,7 +12,7 @@ class Game(
 
     val deckList: MutableList<Card> = ArrayList()
     val revealedCardList: MutableList<Card> = ArrayList()
-    val playerList: MutableList<Player> = ArrayList()
+    val playerStatusMap: MutableMap<UUID, PlayerGameStatus> = HashMap()
 
     companion object {
         val INVALID_MODEL_TITLE = "Invalid Game"
@@ -38,10 +39,6 @@ class Game(
         createMissingCardsWithDefaultSkins()
 
         shuffleDeck()
-    }
-
-    fun getPlayersHandMap(): Map<UUID, List<Card>> {
-        return playerList.associateBy { it.id }.mapValues { it.value.handCardList }
     }
 
     fun shuffleDeck() {
